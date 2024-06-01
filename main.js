@@ -49,6 +49,9 @@ function main() {
             console.log('Successfully loaded file ', url);
             parseBoxes(arrayBuffer)
         })
+        // Bonus 1:  For very large files, loading them entirely into memory can be inefficient or even infeasible,
+        // streaming (m3u8 or chunk) can solve this problem I think
+        .catch(error => console.error('Error fetching or parsing file:', error));
 }
 
 main();
