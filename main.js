@@ -21,9 +21,24 @@ function parseBoxes(buffer) {
         if (type === 'mdat') {
             const content = new TextDecoder("utf-8").decode(new Uint8Array(buffer, offset + 8, size - 8));
             console.log(`Content of mdat box is: ${content}`);
+            extractBase64Images(content);
         }
 
         offset += size;
+    }
+}
+
+function extractBase64Images(content) {
+    // parse the XML string
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(content, "text/xml");
+    const images = xmlDoc.getElementsByTagName("smpte:image");
+
+    for (let i = 0; i < images.length; i++) {
+        const base64Data = images[i].textContent;
+        const img = document.createElement("img");
+        img.src = `data:image/jpeg;base64,${base64Data}`;
+        document.body.appendChild(img);
     }
 }
 
