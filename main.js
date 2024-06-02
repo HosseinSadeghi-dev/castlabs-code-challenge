@@ -18,19 +18,19 @@ function extractType(dataView, offset) {
     );
 }
 
-function parseBoxes(buffer) {
+function parseBoxes(buffer, offset = 0) {
     const dataView = new DataView(buffer);
-    let offset = 0;
 
     while (offset < dataView.byteLength) {
-        // first four bytes (bytes 03) specify the size
         const size = extractSize(dataView, offset);
-        // Bytes 4-7 specify the type of the box
         const type = extractType(dataView, offset)
 
         console.log(`Found box of type ${type} and size ${size}`);
 
-        if (type === 'mdat') {
+        if (['moof', 'traf'].includes(type)) {
+            parseBoxes(buffer, offset + 8);
+        }
+        else if (type === 'mdat') {
             const content = new TextDecoder("utf-8").decode(new Uint8Array(buffer, offset + 8, size - 8));
             console.log(`Content of mdat box is: ${content}`);
             extractBase64Images(content);
