@@ -18,17 +18,24 @@ function extractType(dataView, offset) {
     );
 }
 
-function parseBoxes(buffer, offset = 0) {
+function parseBoxes(buffer, offset = 0, processed = []) {
     const dataView = new DataView(buffer);
 
     while (offset < dataView.byteLength) {
         const size = extractSize(dataView, offset);
-        const type = extractType(dataView, offset)
+        const type = extractType(dataView, offset);
+        const processedId = `${type}-${size}`;
+
+        if (processed.includes(processedId)) {
+            offset += size;
+            continue;
+        }
+        processed.push(processedId);
 
         console.log(`Found box of type ${type} and size ${size}`);
 
         if (['moof', 'traf'].includes(type)) {
-            parseBoxes(buffer, offset + 8);
+            parseBoxes(buffer, offset + 8, processed);
         }
         else if (type === 'mdat') {
             const content = new TextDecoder("utf-8").decode(new Uint8Array(buffer, offset + 8, size - 8));
