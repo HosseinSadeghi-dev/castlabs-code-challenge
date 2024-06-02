@@ -3,20 +3,32 @@ async function fetchAsArrayBuffer(url) {
     return await response.arrayBuffer();
 }
 
+function extractSize(dataView, offset) {
+    // first four bytes (bytes 03) specify the size
+    return dataView.getUint32(offset);
+}
+
+function extractType(dataView, offset) {
+    // Bytes 4-7 specify the type of the box
+    return String.fromCharCode(
+        dataView.getUint8(offset + 4),
+        dataView.getUint8(offset + 5),
+        dataView.getUint8(offset + 6),
+        dataView.getUint8(offset + 7)
+    );
+}
+
 function parseBoxes(buffer) {
     const dataView = new DataView(buffer);
     let offset = 0;
 
     while (offset < dataView.byteLength) {
         // first four bytes (bytes 03) specify the size
-        const size = dataView.getUint32(offset);
+        const size = extractSize(dataView, offset);
         // Bytes 4-7 specify the type of the box
-        const type = String.fromCharCode(
-            dataView.getUint8(offset + 4),
-            dataView.getUint8(offset + 5),
-            dataView.getUint8(offset + 6),
-            dataView.getUint8(offset + 7)
-        );
+        const type = extractType(dataView, offset)
+
+        console.log(`Found box of type ${type} and size ${size}`);
 
         if (type === 'mdat') {
             const content = new TextDecoder("utf-8").decode(new Uint8Array(buffer, offset + 8, size - 8));
